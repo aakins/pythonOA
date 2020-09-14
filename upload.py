@@ -1,25 +1,21 @@
 import os
 from flask import Flask, flash, request, redirect, url_for
 from werkzeug.utils import secure_filename
+import general
 
 UPLOAD_FOLDER = '/Projects/Uploads'
-ALLOWED_EXTENSIONS = {'gz'}
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024 * 1024
 # app.run(host='0.0.0.0', port=5000,debug=True)
 
-def allowed_file(filename):
-    return '.' in filename and \
-           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
 @app.route('/', methods=['GET', 'POST'])
 def upload_file():
     import datetime
     starttime = datetime.datetime.now()
-    print("Start:" + str(starttime))
     if request.method == 'POST':
+        print("Start:" + str(starttime))
         # check if the post request has the file part
         if 'file' not in request.files:
             flash('No file part')
@@ -30,14 +26,14 @@ def upload_file():
         if file.filename == '':
             flash('No selected file')
             return redirect(request.url)
-        if file and allowed_file(file.filename):
+        if file and general.allowed_file(file.filename):
             filename = secure_filename(file.filename)
             file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            analyze_file(filename)
-            excel(xlanalysisfile)
+            general.analyze_file(filename)
+            excel(general.xlanalysisfile)
             endtime = datetime.datetime.now()
             print("End:" + str(endtime))
-            return redirect(url_for('uploaded_file',filename=xlanalysisfilename))
+            return redirect(url_for('uploaded_file',filename=general.xlanalysisfilename))
     return '''
     <!doctype html>
     <head>
@@ -57,154 +53,6 @@ def upload_file():
     </div>
     </body>
     '''
-
-def analyze_file(filename):
-    import os
-    from datetime import date
-    import calendar
-    import re
-    import openpyxl
-    import gzip,shutil
-    month = calendar.month_abbr[date.today().month]
-    year = date.today().year
-    day = date.today().day
-    username = os.environ["USERNAME"]
-    #onedrivedir = "C:/Users/"+ username +"/OneDrive - National Information Solutions Cooperative/"
-    downloadsdir = "C:/Users/"+ username +"/Downloads/"
-    projectsdir = "C:/Projects/Uploads/"
-    coopsdir = r"\\mofs\sdesvr\Support\MDM-DA\Coops"
-    # companydir = str(number) + " " + name + "/"
-    # monthdir = month + " " + str(year) + "/"
-    global number
-    number = re.search('([0-9])+', filename)
-    number = number.group(0)
-
-    #if not os.path.exists(onedrivedir + companydir):
-    #    os.mkdir(onedrivedir + companydir)
-
-    # if not os.path.exists(onedrivedir + companydir + monthdir):
-        # os.mkdir(onedrivedir + companydir + monthdir)
-        
-    # if not os.path.exists(projectsdir + companydir):
-        # os.mkdir(projectsdir + companydir)
-        
-    # if not os.path.exists(projectsdir + companydir + monthdir):
-        # os.mkdir(projectsdir + companydir + monthdir)
-
-    gzfilename, file_extension = os.path.splitext(filename)
-    # if not os.path.exists(projectsdir + companydir + monthdir):
-        # os.mkdir(projectsdir + companydir + monthdir)
-        
-    if file_extension == ".gz":
-        with gzip.open(projectsdir + filename, 'r') as f_in, open(projectsdir + filename[:-3], 'wb') as f_out:
-              shutil.copyfileobj(f_in, f_out)
-    gzfile = projectsdir + gzfilename
-    restore_db(gzfile, number, projectsdir)
-    set_level(number)
-    
-    xltemplatefile = projectsdir + "OAMapWiseDataReview_Master_temp.xlsm"
-    global xlanalysisfile
-    xlanalysisfile = projectsdir + "gs" + str(number) + "-OAMapWiseDataReview-" + str(day) + str(month) + str(year) + ".xlsm"
-    global xlanalysisfilename
-    xlanalysisfilename = "gs" + str(number) + "-OAMapWiseDataReview-" + str(day) + str(month) + str(year) + ".xlsm"
-    if os.path.exists(xltemplatefile):
-        mywb = openpyxl.load_workbook(xltemplatefile, keep_vba=True)
-        mywb.save(xlanalysisfile)
-    else:
-        print("File " + xltemplatefile + " not found.")
-    
-    
-    return xlanalysisfilename, xlanalysisfile
-
-def restore_db(gzfile, number, projectsdir):
-    import pyodbc
-    import os
-    import time
-
-    conn = pyodbc.connect("Driver={SQL Server};Server=.\SQLEXPRESS;Database=master;Trusted_Connection=yes", autocommit = True)
-    conn.timeout = 60
-    cursor = conn.cursor()
-    file_list = []
-    print("Restoring DB...")
-    
-    def get_filelistonly(bak_file):
-        sqlcommand = r"""
-                        RESTORE filelistonly FROM DISK = N'{bak_file}'
-                     """.format(bak_file=bak_file)
-        cursor.execute(sqlcommand)
-        rows = cursor.fetchall()
-
-        for row in rows:
-            fname = row[0]
-            fext = os.path.splitext(row[1])[1]
-            if "." not in fext:
-                raise ValueError("No extension found in row")
-            file_list.append({"fname": fname, "fext": fext})
-        return file_list
-    
-    def get_drop_command(new_db):
-        r = None
-        if len(file_list) > 0:
-            sqlcommand = r"""DROP DATABASE IF EXISTS {new_db}
-                         """.format(new_db=new_db)
-            r = sqlcommand
-            try:
-                cursor.execute(sqlcommand)
-                while cursor.nextset():
-                    pass
-            except:
-                print("Couldn't drop table")
-                pass
-        return r
-    
-    def get_restore_command(new_db, bak_file, file_list):
-        r = None
-        if len(file_list) > 0:
-            sqlcommand = r"""RESTORE DATABASE {new_db} FROM DISK = N'{bak_file}'
-                            WITH
-                            FILE = 1,
-                         """.format(new_db=new_db, bak_file=bak_file)
-            sqlcommand = sqlcommand + ", \n".join(("MOVE N'{fname}' TO N'{projectsdir}\{new_db}{fext}'".format(fname=fl['fname'], fext=fl['fext'], new_db=new_db, number=number, projectsdir=projectsdir) for fl in file_list))
-            sqlcommand = sqlcommand + ", NOUNLOAD, REPLACE, STATS = 5"
-            r = sqlcommand
-            sqlcommand = sqlcommand.replace("/" , "\\")
-            try:
-                cursor.execute(sqlcommand)
-                while cursor.nextset():
-                    pass
-            except:
-                print("Couldn't restore table")
-                pass
-        return r
-
-    rows_empty = ()
-    #backup_file = projectsdir + companydir + monthdir + gzfilename[:-3]
-    file_list = get_filelistonly(gzfile)
-
-    r = get_drop_command("gs" + number)
-    time.sleep(15)
-    r = get_restore_command("gs" + number, gzfile, file_list)
-    time.sleep(15)
-    conn.close()
-    return
-
-def set_level(number):
-    import pyodbc
-
-    conn = pyodbc.connect("Driver={SQL Server};Server=.\SQLEXPRESS;Database=master;Trusted_Connection=yes", autocommit = True)
-    conn.timeout = 60
-    cursor = conn.cursor()
-
-    sqlcommand = r"""Use master
-                    ALTER DATABASE gs{number}
-                    SET COMPATIBILITY_LEVEL = 130;
-                 """.format(number=number)
-    cursor.execute(sqlcommand)
-    while cursor.nextset():
-        pass
-
-    conn.close()
-    return
 
 def sumrows(table):
     try:
@@ -302,7 +150,7 @@ def duplicateid(idcolumn, idcolumn1, table):
     cell_style = 'Normal'
     global cell_alignment
     cell_alignment = 'False'
-    rows = cursor.columns(table=table)
+    #rows = cursor.columns(table=table)
     for row in cursor.columns(table=table):
         if "gs_facility_id" in row:
             facility_id = True
@@ -382,7 +230,7 @@ def duplicate_xfmr(idcolumn, idcolumn1, table):
     cell_style = 'Normal'
     global cell_alignment
     cell_alignment = 'False'
-    rows = cursor.columns(table=table)
+    #rows = cursor.columns(table=table)
     for row in cursor.columns(table=table):
         if "gs_facility_id" in row:
             facility_id = True
@@ -471,7 +319,7 @@ def duplicate_system():
     global cell_alignment
     cell_alignment = 'False'
     table = "gs_service_point"
-    rows = cursor.columns(table=table)
+    #rows = cursor.columns(table=table)
     if int(sumrows(table)) == 0:
         cell_style = 'Bad'
         c = "This table is empty."
@@ -550,8 +398,8 @@ def duplicate_system():
 
 def xfmr_voltage(idcolumn, idcolumn1, table):
     import pandas as pd
-    c = "Error."
-    facility_id = False
+    #c = "Error."
+    #facility_id = False
     global cell_style
     cell_style = 'Normal'
     global cell_alignment
@@ -561,7 +409,7 @@ def xfmr_voltage(idcolumn, idcolumn1, table):
         if idcolumn in row:
             for row in cursor.columns(table=table):
                 if idcolumn1 in row:
-                    r = r""
+                    #r = r""
                     sqlcommand = r"""SELECT {table}.{idcolumn}, {table}.{idcolumn1}, Count({table}.OBJECTID) AS [Count]
                     FROM {table}
                     GROUP BY {table}.{idcolumn}, {table}.{idcolumn1}
@@ -578,8 +426,8 @@ def xfmr_voltage(idcolumn, idcolumn1, table):
     
 def span_assembly(table):
     import pandas as pd
-    c = "Error."
-    facility_id = False
+    #c = "Error."
+    #facility_id = False
     global cell_style
     cell_style = 'Normal'
     global cell_alignment
@@ -589,7 +437,7 @@ def span_assembly(table):
         if idcolumn in row:
             for row in cursor.columns(table=table):
                 if idcolumn1 in row:
-                    r = r""
+                    #r = r""
                     sqlcommand = r"""SELECT gs_assembly_ref.gs_assembly_name, gs_assembly_ref.gs_engineering_analysis_name, Count({table}.gs_guid) AS [Count], {table}.gs_subtype_cd, gs_assembly_ref.gs_assembly_description
                     FROM ({table} INNER JOIN gs_attached_assemblies ON {table}.gs_guid = gs_attached_assemblies.gs_network_feature_guid) INNER JOIN gs_assembly_ref ON gs_attached_assemblies.gs_assembly_guid = gs_assembly_ref.gs_guid
                     GROUP BY gs_assembly_ref.gs_assembly_name, gs_assembly_ref.gs_engineering_analysis_name, {table}.gs_subtype_cd, gs_assembly_ref.gs_assembly_description, gs_assembly_ref.gs_is_flow_assembly
@@ -648,7 +496,7 @@ def fieldsummary(idcolumn, table):
                                           WHEN {idcolumn} = TRY_CONVERT(numeric, 'UNK') THEN '2'
                                           ELSE {idcolumn} END ASC
                             """.format(idcolumn=idcolumn,table=table)
-            print(idcolumn + " " + sqlcommand)
+            #print(idcolumn + " " + sqlcommand)
             cursor.execute(sqlcommand)
             row = cursor.fetchall()
             totalrows = sumrows(table)
@@ -1177,9 +1025,9 @@ def nullabc(idcolumn, idcolumn1, idcolumn2, idcolumn3, table):
     for row in cursor.columns(table=table):
         if "gs_facility_id" in row:
             facility_id = True
-    for row in cursor.columns(table=table):
-        if "gs_equipment_location" in row:
-            equipment_loc = True
+    #for row in cursor.columns(table=table):
+        #if "gs_equipment_location" in row:
+            #equipment_loc = True
     totalrows = sumrows(table)
     sqlcommand = r"""SELECT {table}.{idcolumn1}, {table}.{idcolumn}
                     FROM {table}
@@ -1380,7 +1228,7 @@ def excel(xlanalysisfile):
     global idcolumn1
     global idcolumn2
     global idcolumn3
-    conn = pyodbc.connect("Driver={driver};Server=.\SQLEXPRESS;Database={database};Trusted_Connection=yes".format(driver = "{SQL Server}",database = "gs" + number), autocommit = True)
+    conn = pyodbc.connect("Driver={driver};Server=.\SQLEXPRESS;Database={database};Trusted_Connection=yes".format(driver = "{SQL Server}",database = "gs" + general.number), autocommit = True)
     conn.timeout = 60
     #conn.setencoding('utf-8')  # (Python 3.x syntax)
     #conn.setdecoding(pyodbc.SQL_CHAR, encoding='utf-8')
@@ -1396,13 +1244,13 @@ def excel(xlanalysisfile):
     wb = openpyxl.load_workbook(xlanalysisfile, keep_vba=True)
     ws = wb["Overview"]
 
-    c = "OA Data Analysis Summary\n" + number
+    c = "OA Data Analysis Summary\n" + general.number
     ws['A1'] = c
     c = "Review of Snapshot from " + str(date.today())
     ws['C1'] = c
 
     category = "SUB"
-    copysubstation = 0
+    #copysubstation = 0
     table = "gs_electric_station"
     idcolumn = "gs_name"
     c = "Substations (" + str(sumrows (table)) + ")"
