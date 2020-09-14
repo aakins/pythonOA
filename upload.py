@@ -18,7 +18,7 @@ def allowed_file(filename):
 def upload_file():
     import datetime
     starttime = datetime.datetime.now()
-    print("Start:" + starttime)
+    print("Start:" + str(starttime))
     if request.method == 'POST':
         # check if the post request has the file part
         if 'file' not in request.files:
@@ -36,7 +36,7 @@ def upload_file():
             analyze_file(filename)
             excel(xlanalysisfile)
             endtime = datetime.datetime.now()
-            print("End:" + endtime)
+            print("End:" + str(endtime))
             return redirect(url_for('uploaded_file',filename=xlanalysisfilename))
     return '''
     <!doctype html>
