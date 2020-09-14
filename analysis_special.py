@@ -1,5 +1,6 @@
 import excel
 import analysis
+import pandas as pd
 
 def duplicate_xfmr(idcolumn, idcolumn1, table):
     import pandas as pd
@@ -179,10 +180,10 @@ def xfmr_voltage(idcolumn, idcolumn1, table):
     import pandas as pd
     #c = "Error."
     #facility_id = False
-    global cell_style
-    cell_style = 'Normal'
-    global cell_alignment
-    cell_alignment = 'False'
+    #global cell_style
+    excel.cell_style = 'Normal'
+    #global cell_alignment
+    excel.cell_alignment = 'False'
     rows = excel.cursor.columns(table=table)
     for row in rows:
         if idcolumn in row:
@@ -205,12 +206,12 @@ def xfmr_voltage(idcolumn, idcolumn1, table):
     
 def span_assembly(table):
     import pandas as pd
-    #c = "Error."
-    #facility_id = False
-    global cell_style
-    cell_style = 'Normal'
-    global cell_alignment
-    cell_alignment = 'False'
+    excel.c = "Error."
+    excel.facility_id = False
+    #global cell_style
+    excel.cell_style = 'Normal'
+    #global cell_alignment
+    excel.cell_alignment = 'False'
     rows = excel.cursor.columns(table=table)
     for row in rows:
         if excel.idcolumn in row:
@@ -236,7 +237,135 @@ def span_assembly(table):
                     analysis.write_hyperlink(sheetname)
                     break
     return
-    
+
+def two_bank_xfmr(table):
+    excel.c = "Error."
+    excel.facility_id = False
+    #global cell_style
+    excel.cell_style = 'Normal'
+    #global cell_alignment
+    excel.cell_alignment = 'False'
+    #r = r""
+    sqlcommand = r"""DROP TABLE IF EXISTS #QueryTable"""
+    excel.cursor.execute(sqlcommand)
+    #r = r""
+    sqlcommand = r"""SELECT
+            s.OBJECTID AS StationObjectID
+            ,s.gs_guid AS StationGuid
+            ,t.OBJECTID AS TransformerObjectID
+            ,t.gs_guid AS TransformerGuid
+            ,t.gs_phase AS TransformerPhase
+            ,t.gs_equipment_location AS TransformerEquipLoc
+            ,t.gs_bank_id AS TransformerBankID
+            ,t.gs_winding_connection AS TransformerWindingConnection
+            INTO #QueryTable
+            FROM GS_TRANSFORMER t
+        JOIN GS_ATTACHED_ASSEMBLIES aa ON aa.gs_display_feature_guid = t.gs_guid
+        JOIN gs_station s ON s.gs_guid = aa.gs_network_feature_guid
+        WHERE s.gs_guid IN
+            (
+            SELECT aa.gs_network_feature_guid FROM gs_attached_assemblies aa
+            JOIN GS_TRANSFORMER t
+                ON t.gs_guid = aa.gs_display_feature_guid
+            GROUP BY aa.gs_network_feature_guid
+            HAVING COUNT(aa.gs_network_feature_guid) = 2
+            )"""
+    excel.cursor.execute(sqlcommand)
+    #r = r""
+    sqlcommand = r"""SELECT StationObjectID, TransformerObjectID, TransformerPhase, 
+        TransformerEquipLoc, TransformerBankID, TransformerWindingConnection FROM #QueryTable ORDER BY StationObjectID"""
+    #excel.cursor.execute(sqlcommand)
+    #row = excel.cursor.fetchall()
+    df = pd.read_sql_query(sqlcommand, excel.conn)
+    sheetname = excel.category + "-2bank"
+    analysis.createsheet(sheetname)
+    analysis.writedf(df, sheetname)
+    analysis.write_hyperlink(sheetname)
+    return
+
+def two_bank_diff_id(table):
+    #global cell_style
+    excel.cell_style = 'Normal'
+    #rows = excel.cursor.columns(table=table)
+    #r = r""
+    sqlcommand = r"""SELECT
+            StationObjectID
+            ,TransformerEquipLoc
+            ,TransformerBankID
+            ,COUNT(*) AS 'Count'
+            FROM #QueryTable
+            GROUP BY StationObjectID, TransformerEquipLoc, TransformerBankID
+            HAVING COUNT(TransformerBankID) <= 1"""
+    #excel.cursor.execute(sqlcommand)
+    #row = excel.cursor.fetchall()
+    df = pd.read_sql_query(sqlcommand, excel.conn)
+    countid = df['Count'].sum()
+    if (countid > 0):
+        excel.cell_style = 'Bad'
+        c = str(countid) + " errors."
+    sheetname = excel.category + "-2bank_diff_id"
+    analysis.createsheet(sheetname)
+    analysis.writedf(df, sheetname)
+    analysis.write_hyperlink(sheetname)
+    return c
+
+def two_bank_winding(table):
+    #global cell_style
+    excel.cell_style = 'Normal'
+    #rows = excel.cursor.columns(table=table)
+    #r = r""
+    sqlcommand = r"""SELECT
+            StationObjectID
+            ,TransformerObjectID
+            ,TransformerPhase
+            ,TransformerEquipLoc
+            ,TransformerBankID
+            ,TransformerWindingConnection
+            FROM #QueryTable
+            WHERE TransformerWindingConnection <> 5 OR TransformerWindingConnection IS NULL"""
+    excel.cursor.execute(sqlcommand)
+    row = excel.cursor.fetchall()
+    df = pd.read_sql_query(sqlcommand, excel.conn)
+    countid = len(row)
+    if (countid > 0):
+        excel.cell_style = 'Bad'
+        c = str(countid) + " errors."
+    sheetname = excel.category + "-2bank_winding"
+    analysis.createsheet(sheetname)
+    analysis.writedf(df, sheetname)
+    analysis.write_hyperlink(sheetname)
+    return c
+
+def two_bank_phasing(table):
+    #global cell_style
+    excel.cell_style = 'Normal'
+    #rows = excel.cursor.columns(table=table)
+    #r = r""
+    sqlcommand = r"""SELECT
+            StationObjectID
+            ,TransformerObjectID
+            ,TransformerPhase
+            ,TransformerEquipLoc
+            ,TransformerBankID
+            ,TransformerWindingConnection
+            FROM #QueryTable"""
+    excel.cursor.execute(sqlcommand)
+    row = excel.cursor.fetchall()
+    df = pd.read_sql_query(sqlcommand, excel.conn)
+    grouped_df = df.groupby("TransformerEquipLoc")
+    grouped_list = grouped_df["TransformerPhase"].agg(lambda column: "".join(column))
+    grouped_list = grouped_list.reset_index(name="TransformerPhase")
+    grouped_list = grouped_list[grouped_list.TransformerPhase != 'ABC']
+    countid = len(row)
+    if (countid > 0):
+        excel.cell_style = 'Bad'
+        c = str(countid) + " errors."
+    sheetname = excel.category + "-2bank_phasing"
+    analysis.createsheet(sheetname)
+    analysis.writedf(grouped_list, sheetname)
+    analysis.write_hyperlink(sheetname)
+    return c
+
 def neutral(idcolumn, table):
     import pandas as pd
     c = "Error."

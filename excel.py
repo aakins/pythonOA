@@ -110,6 +110,151 @@ def excel(xlanalysisfile):
     ws['C'+ str(cell)].style = cell_style
     ws['C'+ str(cell)].alignment = Alignment(wrap_text=cell_alignment)
 
+    category = "XFMR"
+    table = "gs_transformer"
+    idcolumn = "gs_equipment_location"
+    c = "Transformers (" + str(analysis.sumrows (table)) + ")"
+    cell += 2
+    ws['A'+ str(cell)] = c
+    cell += 1
+    c = analysis.uniqueid(idcolumn,table)
+    ws['C'+ str(cell)] = c
+    ws['C'+ str(cell)].style = cell_style
+    ws['C'+ str(cell)].alignment = Alignment(wrap_text=cell_alignment)
+    idcolumn = "gs_equipment_location"
+    idcolumn1 = "gs_bank_id"
+    cell += 1
+    c = analysis_special.duplicate_xfmr(idcolumn, idcolumn1, table)
+    ws['C'+ str(cell)] = c
+    ws['C'+ str(cell)].style = cell_style
+    ws['C'+ str(cell)].alignment = Alignment(wrap_text=cell_alignment)
+    idcolumn = "gs_phase"
+    cell += 1
+    c = analysis.fieldsummary(idcolumn,table)
+    ws['C'+ str(cell)] = c
+    ws['C'+ str(cell)].style = cell_style
+    ws['C'+ str(cell)].alignment = Alignment(wrap_text=cell_alignment)
+    idcolumn = "gs_xfmr_conductor_description"
+    cell += 1
+    c = analysis.fieldsummary(idcolumn,table)
+    ws['C'+ str(cell)] = c
+    ws['C'+ str(cell)].style = cell_style
+    ws['C'+ str(cell)].alignment = Alignment(wrap_text=cell_alignment)
+    idcolumn = "gs_phase"
+    idcolumn1 = "gs_tran_kva_a"
+    idcolumn2 = "gs_tran_kva_b"
+    idcolumn3 = "gs_tran_kva_c"
+    cell += 1
+    c = analysis.nullabc(idcolumn, idcolumn1, idcolumn2, idcolumn3, table)
+    ws['C'+ str(cell)] = c
+    ws['C'+ str(cell)].style = cell_style
+    ws['C'+ str(cell)].alignment = Alignment(wrap_text=cell_alignment)
+    idcolumn = "gs_winding_connection"
+    cell += 1
+    c = analysis.fieldsummary(idcolumn,table)
+    ws['C'+ str(cell)] = c
+    ws['C'+ str(cell)].style = cell_style
+    ws['C'+ str(cell)].alignment = Alignment(wrap_text=cell_alignment)
+    idcolumn = "gs_rated_input_voltage"
+    cell += 1
+    c = analysis.fieldsummary(idcolumn,table)
+    ws['C'+ str(cell)] = c
+    ws['C'+ str(cell)].style = cell_style
+    ws['C'+ str(cell)].alignment = Alignment(wrap_text=cell_alignment)
+    idcolumn = "gs_rated_output_voltage"
+    cell += 1
+    c = analysis.fieldsummary(idcolumn,table)
+    ws['C'+ str(cell)] = c
+    ws['C'+ str(cell)].style = cell_style
+    ws['C'+ str(cell)].alignment = Alignment(wrap_text=cell_alignment)
+    idcolumn = "gs_rated_input_voltage"
+    idcolumn1 = "gs_rated_output_voltage"
+    analysis_special.xfmr_voltage(idcolumn,idcolumn1,table)
+    #idcolumn = "gs_equipment_location"
+    #idcolumn1 = "gs_bank_id"
+    cell += 2
+    c = analysis_special.two_bank_xfmr(table)
+    ws['C'+ str(cell)] = c
+    ws['C'+ str(cell)].style = cell_style
+    ws['C'+ str(cell)].alignment = Alignment(wrap_text=cell_alignment)
+    cell += 1
+    c = analysis_special.two_bank_diff_id(table)
+    ws['C'+ str(cell)] = c
+    ws['C'+ str(cell)].style = cell_style
+    ws['C'+ str(cell)].alignment = Alignment(wrap_text=cell_alignment)
+    cell += 1
+    c = analysis_special.two_bank_winding(table)
+    ws['C'+ str(cell)] = c
+    ws['C'+ str(cell)].style = cell_style
+    ws['C'+ str(cell)].alignment = Alignment(wrap_text=cell_alignment)
+    cell += 1
+    c = analysis_special.two_bank_phasing(table)
+    ws['C'+ str(cell)] = c
+    ws['C'+ str(cell)].style = cell_style
+    ws['C'+ str(cell)].alignment = Alignment(wrap_text=cell_alignment)
+    idcolumn = "gs_is_substation_transformer"
+    cell += 1
+    c = analysis.fieldsummary(idcolumn,table)
+    ws['C'+ str(cell)] = c
+    ws['C'+ str(cell)].style = cell_style
+    ws['C'+ str(cell)].alignment = Alignment(wrap_text=cell_alignment)
+    idcolumn = "gs_positive_r"
+    idcolumn1 = "gs_is_substation_transformer"
+    value = "\'true\'"
+    cell += 1
+    c = analysis.fieldsummaryeqtext(idcolumn, idcolumn1, value, table)
+    ws['C'+ str(cell)] = c
+    ws['C'+ str(cell)].style = cell_style
+    ws['C'+ str(cell)].alignment = Alignment(wrap_text=cell_alignment)
+    idcolumn = "gs_positive_x"
+    idcolumn1 = "gs_is_substation_transformer"
+    value = "\'true\'"
+    cell += 1
+    c = analysis.fieldsummaryeqtext(idcolumn, idcolumn1, value, table)
+    ws['C'+ str(cell)] = c
+    ws['C'+ str(cell)].style = cell_style
+    ws['C'+ str(cell)].alignment = Alignment(wrap_text=cell_alignment)
+    idcolumn = "gs_zero_r"
+    idcolumn1 = "gs_is_substation_transformer"
+    value = "\'true\'"
+    cell += 1
+    c = analysis.fieldsummaryeqtext(idcolumn, idcolumn1, value, table)
+    ws['C'+ str(cell)] = c
+    ws['C'+ str(cell)].style = cell_style
+    ws['C'+ str(cell)].alignment = Alignment(wrap_text=cell_alignment)
+    idcolumn = "gs_zero_x"
+    idcolumn1 = "gs_is_substation_transformer"
+    value = "\'true\'"
+    cell += 1
+    c = analysis.fieldsummaryeqtext(idcolumn, idcolumn1, value, table)
+    ws['C'+ str(cell)] = c
+    ws['C'+ str(cell)].style = cell_style
+    ws['C'+ str(cell)].alignment = Alignment(wrap_text=cell_alignment)
+    idcolumn = "gs_impedance"
+    idcolumn1 = "gs_is_substation_transformer"
+    value = "\'true\'"
+    cell += 1
+    c = analysis.fieldsummaryeqtext(idcolumn, idcolumn1, value, table)
+    ws['C'+ str(cell)] = c
+    ws['C'+ str(cell)].style = cell_style
+    ws['C'+ str(cell)].alignment = Alignment(wrap_text=cell_alignment)
+    idcolumn = "gs_impedance_angle"
+    idcolumn1 = "gs_is_substation_transformer"
+    value = "\'true\'"
+    cell += 1
+    c = analysis.fieldsummaryeqtext(idcolumn, idcolumn1, value, table)
+    ws['C'+ str(cell)] = c
+    ws['C'+ str(cell)].style = cell_style
+    ws['C'+ str(cell)].alignment = Alignment(wrap_text=cell_alignment)
+    idcolumn = "gs_is_center_tap"
+    idcolumn1 = "gs_is_substation_transformer"
+    value = "\'true\'"
+    cell += 1
+    c = analysis.fieldsummaryeqtext(idcolumn, idcolumn1, value, table)
+    ws['C'+ str(cell)] = c
+    ws['C'+ str(cell)].style = cell_style
+    ws['C'+ str(cell)].alignment = Alignment(wrap_text=cell_alignment)
+
     category = "CAP"
     table = "gs_capacitor_bank"
     idcolumn = "gs_equipment_location"
@@ -342,135 +487,6 @@ def excel(xlanalysisfile):
     idcolumn = "gs_switch_description"
     cell += 1
     c = analysis.fieldsummary(idcolumn,table)
-    ws['C'+ str(cell)] = c
-    ws['C'+ str(cell)].style = cell_style
-    ws['C'+ str(cell)].alignment = Alignment(wrap_text=cell_alignment)
-
-    category = "XFMR"
-    table = "gs_transformer"
-    idcolumn = "gs_equipment_location"
-    c = "Transformers (" + str(analysis.sumrows (table)) + ")"
-    cell += 2
-    ws['A'+ str(cell)] = c
-    cell += 1
-    c = analysis.uniqueid(idcolumn,table)
-    ws['C'+ str(cell)] = c
-    ws['C'+ str(cell)].style = cell_style
-    ws['C'+ str(cell)].alignment = Alignment(wrap_text=cell_alignment)
-    idcolumn = "gs_equipment_location"
-    idcolumn1 = "gs_bank_id"
-    cell += 1
-    c = analysis_special.duplicate_xfmr(idcolumn, idcolumn1, table)
-    ws['C'+ str(cell)] = c
-    ws['C'+ str(cell)].style = cell_style
-    ws['C'+ str(cell)].alignment = Alignment(wrap_text=cell_alignment)
-    idcolumn = "gs_phase"
-    cell += 1
-    c = analysis.fieldsummary(idcolumn,table)
-    ws['C'+ str(cell)] = c
-    ws['C'+ str(cell)].style = cell_style
-    ws['C'+ str(cell)].alignment = Alignment(wrap_text=cell_alignment)
-    idcolumn = "gs_xfmr_conductor_description"
-    cell += 1
-    c = analysis.fieldsummary(idcolumn,table)
-    ws['C'+ str(cell)] = c
-    ws['C'+ str(cell)].style = cell_style
-    ws['C'+ str(cell)].alignment = Alignment(wrap_text=cell_alignment)
-    idcolumn = "gs_phase"
-    idcolumn1 = "gs_tran_kva_a"
-    idcolumn2 = "gs_tran_kva_b"
-    idcolumn3 = "gs_tran_kva_c"
-    cell += 1
-    c = analysis.nullabc(idcolumn, idcolumn1, idcolumn2, idcolumn3, table)
-    ws['C'+ str(cell)] = c
-    ws['C'+ str(cell)].style = cell_style
-    ws['C'+ str(cell)].alignment = Alignment(wrap_text=cell_alignment)
-    idcolumn = "gs_winding_connection"
-    cell += 1
-    c = analysis.fieldsummary(idcolumn,table)
-    ws['C'+ str(cell)] = c
-    ws['C'+ str(cell)].style = cell_style
-    ws['C'+ str(cell)].alignment = Alignment(wrap_text=cell_alignment)
-    idcolumn = "gs_rated_input_voltage"
-    cell += 1
-    c = analysis.fieldsummary(idcolumn,table)
-    ws['C'+ str(cell)] = c
-    ws['C'+ str(cell)].style = cell_style
-    ws['C'+ str(cell)].alignment = Alignment(wrap_text=cell_alignment)
-    idcolumn = "gs_rated_input_voltage"
-    idcolumn1 = "gs_rated_output_voltage"
-    analysis_special.xfmr_voltage(idcolumn,idcolumn1,table)
-    idcolumn = "gs_rated_output_voltage"
-    cell += 1
-    c = analysis.fieldsummary(idcolumn,table)
-    ws['C'+ str(cell)] = c
-    ws['C'+ str(cell)].style = cell_style
-    ws['C'+ str(cell)].alignment = Alignment(wrap_text=cell_alignment)
-    #idcolumn = "gs_equipment_location"
-    #idcolumn1 = "gs_bank_id"
-    #c = analysis.duplicateid(idcolumn, idcolumn1, table) + " They should have gs_bank_ids added if they are banked."
-    #ws['C45'] = c
-    #ws['C45'].style = cell_style
-    #ws['C45'].alignment = Alignment(wrap_text=cell_alignment)
-    idcolumn = "gs_is_substation_transformer"
-    cell += 2
-    c = analysis.fieldsummary(idcolumn,table)
-    ws['C'+ str(cell)] = c
-    ws['C'+ str(cell)].style = cell_style
-    ws['C'+ str(cell)].alignment = Alignment(wrap_text=cell_alignment)
-    idcolumn = "gs_positive_r"
-    idcolumn1 = "gs_is_substation_transformer"
-    value = "\'true\'"
-    cell += 1
-    c = analysis.fieldsummaryeqtext(idcolumn, idcolumn1, value, table)
-    ws['C'+ str(cell)] = c
-    ws['C'+ str(cell)].style = cell_style
-    ws['C'+ str(cell)].alignment = Alignment(wrap_text=cell_alignment)
-    idcolumn = "gs_positive_x"
-    idcolumn1 = "gs_is_substation_transformer"
-    value = "\'true\'"
-    cell += 1
-    c = analysis.fieldsummaryeqtext(idcolumn, idcolumn1, value, table)
-    ws['C'+ str(cell)] = c
-    ws['C'+ str(cell)].style = cell_style
-    ws['C'+ str(cell)].alignment = Alignment(wrap_text=cell_alignment)
-    idcolumn = "gs_zero_r"
-    idcolumn1 = "gs_is_substation_transformer"
-    value = "\'true\'"
-    cell += 1
-    c = analysis.fieldsummaryeqtext(idcolumn, idcolumn1, value, table)
-    ws['C'+ str(cell)] = c
-    ws['C'+ str(cell)].style = cell_style
-    ws['C'+ str(cell)].alignment = Alignment(wrap_text=cell_alignment)
-    idcolumn = "gs_zero_x"
-    idcolumn1 = "gs_is_substation_transformer"
-    value = "\'true\'"
-    cell += 1
-    c = analysis.fieldsummaryeqtext(idcolumn, idcolumn1, value, table)
-    ws['C'+ str(cell)] = c
-    ws['C'+ str(cell)].style = cell_style
-    ws['C'+ str(cell)].alignment = Alignment(wrap_text=cell_alignment)
-    idcolumn = "gs_impedance"
-    idcolumn1 = "gs_is_substation_transformer"
-    value = "\'true\'"
-    cell += 1
-    c = analysis.fieldsummaryeqtext(idcolumn, idcolumn1, value, table)
-    ws['C'+ str(cell)] = c
-    ws['C'+ str(cell)].style = cell_style
-    ws['C'+ str(cell)].alignment = Alignment(wrap_text=cell_alignment)
-    idcolumn = "gs_impedance_angle"
-    idcolumn1 = "gs_is_substation_transformer"
-    value = "\'true\'"
-    cell += 1
-    c = analysis.fieldsummaryeqtext(idcolumn, idcolumn1, value, table)
-    ws['C'+ str(cell)] = c
-    ws['C'+ str(cell)].style = cell_style
-    ws['C'+ str(cell)].alignment = Alignment(wrap_text=cell_alignment)
-    idcolumn = "gs_is_center_tap"
-    idcolumn1 = "gs_is_substation_transformer"
-    value = "\'true\'"
-    cell += 1
-    c = analysis.fieldsummaryeqtext(idcolumn, idcolumn1, value, table)
     ws['C'+ str(cell)] = c
     ws['C'+ str(cell)].style = cell_style
     ws['C'+ str(cell)].alignment = Alignment(wrap_text=cell_alignment)
