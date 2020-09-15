@@ -1,5 +1,15 @@
 import excel
 
+def table_exists(table):
+    sqlcommand = r"""SELECT COUNT(*)
+                FROM information_schema.tables
+                WHERE table_name = '{table}';
+                """.format(table=table)
+    excel.cursor.execute(sqlcommand)
+    if excel.cursor.fetchone()[0] == 1:
+        return True
+    return False
+
 def createsheet(sheetname):
     if sheetname in excel.wb.sheetnames:
         #excel.wb.remove(wb[sheetname])
@@ -31,6 +41,11 @@ def write_hyperlink(sheetname):
     excel.ws['D'+ str(excel.cell)].hyperlink = hyperlink
     excel.ws['D'+ str(excel.cell)].value = sheetname
     excel.ws['D'+ str(excel.cell)].style = "Hyperlink"
+    return
+
+def collapse_rows(start, end):
+    excel.ws = excel.wb["Overview"]
+    excel.ws.row_dimensions.group(start, end, hidden=True)
     return
 
 def sumrows(table):
